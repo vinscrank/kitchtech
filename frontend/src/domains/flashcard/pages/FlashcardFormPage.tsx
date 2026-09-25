@@ -14,11 +14,15 @@ export function FlashcardFormPage() {
   const save = id ? update : create
 
   return (
-    <Page title={id ? 'Edit card' : 'New card'}>
-      <Button variant="outline" asChild>
-        <Link to="/flashcards">Back</Link>
-      </Button>
-      <AsyncStatus pending={Boolean(id) && existing.isFetching} error={id ? existing.error : null} />
+    <Page
+      title={id ? 'Edit card' : 'New card'}
+      action={
+        <Button variant="outline" asChild>
+          <Link to="/flashcards">Back</Link>
+        </Button>
+      }
+    >
+      <AsyncStatus pending={Boolean(id) && existing.isPending} error={id ? existing.error : null} />
       {!id || existing.data ? (
         <FlashcardForm
           initial={{ front: existing.data?.front ?? '', back: existing.data?.back ?? '' }}

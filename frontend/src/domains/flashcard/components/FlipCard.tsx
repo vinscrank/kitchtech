@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Flashcard } from '../model/flashcard'
 
-const face = 'absolute inset-0 flex flex-col overflow-hidden rounded-2xl border p-8 shadow-md [backface-visibility:hidden] [-webkit-backface-visibility:hidden]'
+const face = 'absolute inset-0 flex flex-col overflow-hidden rounded-2xl border p-8 shadow-sm [backface-visibility:hidden] [-webkit-backface-visibility:hidden]'
 const body = 'flex min-h-full items-center justify-center text-center text-xl font-medium leading-relaxed'
 
 export function FlipCard({ card }: { card: Flashcard }) {

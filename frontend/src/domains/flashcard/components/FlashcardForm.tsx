@@ -43,7 +43,7 @@ export function FlashcardForm({ initial, pending, error, onSubmit }: FlashcardFo
   }, [initial.front, initial.back])
 
   return (
-    <Card className="mt-8">
+    <Card>
       <form
         className="grid gap-5 p-6"
         onSubmit={(event) => {

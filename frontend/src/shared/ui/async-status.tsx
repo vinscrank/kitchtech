@@ -8,14 +8,14 @@ type AsyncStatusProps = {
 export function AsyncStatus({ pending, error }: AsyncStatusProps) {
   if (pending) {
     return (
-      <p className="mt-6 text-muted-foreground">
+      <p className="text-sm text-muted-foreground">
         <Loader />
       </p>
     )
   }
 
   if (error) {
-    return <p className="mt-6 text-sm text-destructive">{error.message}</p>
+    return <p className="text-sm text-destructive">{error.message}</p>
   }
 
   return null
