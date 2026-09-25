@@ -1,0 +1,3 @@
+/backend/vendor/
+/backend/.phpunit.cache/
+/backend/.env

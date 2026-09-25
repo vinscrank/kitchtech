@@ -1,0 +1,38 @@
+services:
+  db:
+    image: mysql:8
+    environment:
+      MYSQL_DATABASE: kitchtech
+      MYSQL_USER: kitchtech
+      MYSQL_PASSWORD: kitchtech
+      MYSQL_ROOT_PASSWORD: kitchtech
+    volumes:
+      - mysqldata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-ukitchtech", "-pkitchtech"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    ports:
+      - "33066:3306"
+
+  api:
+    build: ./backend
+    ports:
+      - "18080:80"
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: kitchtech
+      DB_USER: kitchtech
+      DB_PASSWORD: kitchtech
+      APP_DEBUG: "0"
+      CORS_ORIGIN: "http://localhost:5173"
+    links:
+      - db
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  mysqldata:

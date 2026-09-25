@@ -1,167 +1,197 @@
 # Approcci e tecniche
 
-Catalogo da aggiornare quando si implementa una feature. Non è una checklist da completare: è l’elenco delle scelte di cui si può parlare al follow-up tecnico.
+Catalogo delle scelte. Ogni voce è corta: perché, un esempio, le alternative, la scelta. La specifica vincolante è in [brief.md](brief.md).
 
-Ogni voce dice cos’è, perché sta in questa app di flashcard, e il punto da tenere pronto in sede di colloquio. La specifica vincolante è in [brief.md](brief.md).
+## Monolite modulare, un solo modulo
 
-## Architettura
+Perché: il codice è diviso per capacità, così una funzione nuova non si mescola al CRUD delle card.
 
-Struttura prevista per il backend: Clean Architecture, al posto di una layered architecture classica (controller, service, repository sullo stesso modello di dati).
+Esempio: oggi esiste solo `Flashcard`. Una sessione di studio futura sarebbe un'altra cartella, una riga nel bootstrap, e una porta sua se deve leggere le card.
 
-### Clean Architecture
+Alternative: tre cartelle globali `Controller/Service/Repository`; oppure un microservizio per le card.
 
-Il codice è diviso in anelli. Il dominio non importa nulla dagli anelli esterni. Gli use case orchestrano il dominio. Gli adapter traducono HTTP e database verso l’interno. La presentation (handler HTTP) sta sul bordo.
+Scelta: un modulo solo, più `Shared` per env, PDO, migrazioni, paginazione ed errori HTTP. Un secondo modulo senza una seconda capacità è struttura vuota. `Shared` non importa `Flashcard`. I moduli non si importano tra loro.
 
-In un CRUD di flashcard il dominio è piccolo (front, back, identità). Il valore non è la complessità del modello, è dimostrare che la regola di business non dipende da PDO né da `$_POST`. Al colloquio: il dominio si testa senza web server e senza database.
+## Clean Architecture
 
-### Dependency inversion
+Perché: front, back e identità non devono cambiare se cambia il framework o il database.
 
-Gli use case dipendono da un’interfaccia (la porta), non dalla classe PDO. L’implementazione concreta viene iniettata da fuori.
+Esempio: `Flashcard` non contiene tipi di Slim né di PDO. Il test dell'use case gira senza MySQL.
 
-Senza un container di framework, la composizione sta in un unico punto di avvio: lì si costruiscono repository, validator e handler e si passano le dipendenze. Al colloquio: un solo posto sa quali classi concrete esistono; il resto del codice vede solo contratti.
+Alternative: modello attivo legato a SQL; oppure controller che chiama PDO diretto.
 
-### Repository come porta
+Scelta: dominio al centro, use case che dipendono da una porta, controller e repository MySQL sul bordo.
 
-`FlashcardRepository` è un’interfaccia nel dominio o nell’application layer. `SqliteFlashcardRepository` sta nell’infrastruttura.
+## Slim 4
 
-Cambiare storage (SQLite, MySQL, file) non tocca gli use case. Al colloquio: i test degli handler usano un repository in memoria finto, mentre l’app vera persiste su disco. La specifica vieta lo storage solo in memoria in produzione, non nei test.
+Perché: il brief vieta i framework pesanti e serve comunque un bordo HTTP.
 
-### Composizione in un unico punto
+Esempio: Slim registra `POST /flashcards` e il middleware CORS. L'use case `CreateFlashcard` non importa Slim.
 
-Niente service locator sparso. Il front controller (o un bootstrap) istanzia le dipendenze e le consegna.
+Alternative: PHP puro con una tabella di route scritta a mano; Laravel o CodeIgniter.
 
-Al colloquio: si può indicare il file e dire “qui si vede l’intero grafo”. Aggiungere un secondo storage significa cambiare quel file, non cercare `new` nel progetto.
+Scelta: Slim solo per route, middleware e request/response. Laravel è citato dal brief come da evitare.
 
-## API e backend PHP
+## Service, una classe per azione
 
-### Front controller
+Perché: ogni azione resta un file piccolo e testabile da solo.
 
-Tutte le richieste passano da un unico `index.php`. Il web server riscrive gli URL verso quel file.
+Esempio: `ListFlashcards::handle` restituisce tutte le card. Il controller scrive solo il JSON. I file stanno in `Application/Service`.
 
-Un solo punto applica header comuni, legge il body, delega al router e traduce le eccezioni in risposte HTTP. Al colloquio: errori e CORS non sono duplicati in ogni endpoint.
+Alternative: un `FlashcardService` con create, update, delete e list insieme.
 
-### Routing esplicito
+Scelta: una classe per azione (`Create`, `Get`, `Update`, `Delete`, `List`), metodo `handle`. La cartella si chiama `Service`. Non è una classe sola.
 
-Una tabella metodo + path verso un handler. Niente magia da framework.
+## PHP-DI
 
-Risorse previste: `GET /flashcards`, `GET /flashcards/{id}`, `POST /flashcards`, `PUT /flashcards/{id}` oppure `PATCH`, `DELETE /flashcards/{id}`. Al colloquio: la tabella è la documentazione dell’API; un path nuovo è una riga, non una convenzione implicita.
+Perché: gli use case ricevono `FlashcardRepository` dal costruttore, senza conoscere MySQL.
 
-### DTO di input
+Esempio: in `config/container.php` il binding è `FlashcardRepository` verso `MysqlFlashcardRepository`. I test fanno `new CreateFlashcard(new InMemoryFlashcardRepository(), ...)`.
 
-Il JSON in ingresso diventa un oggetto dedicato (`CreateFlashcard`, `UpdateFlashcard`) prima di toccare il dominio.
+Alternative: `new MysqlFlashcardRepository` dentro l'use case; oppure un service locator chiamato dalle classi.
 
-Il dominio non conosce la forma HTTP. Campi extra nel payload si ignorano o si rifiutano in modo esplicito, e la scelta va detta. Al colloquio: la validazione lavora sul DTO, non su un array associativo passato di mano in mano.
+Scelta: il container sta solo in `container.php` e `public/index.php`. Nessuna classe lo chiama.
 
-### Validazione separata dagli handler
+## Porta repository
 
-Un validator controlla front e back: presenti, stringhe, lunghezza massima, niente solo spazi. L’handler non contiene `if` di formato.
+Perché: cambiare motore SQL non tocca gli use case.
 
-Gli errori di validazione tornano 400 con un messaggio per campo. Un id mancante è 404, non 400. Al colloquio: si distingue input invalido da risorsa assente, e i messaggi sono utili al frontend.
+Esempio: `add`, `findById`, `update`, `delete`, `findAll` sull'interfaccia. MySQL sta in `MysqlFlashcardRepository`.
 
-### Envelope di errore coerente
+Alternative: query SQL negli use case; Eloquent o un altro ORM.
 
-Ogni errore ha la stessa forma, per esempio `{ "error": { "message": "...", "fields": { "front": "..." } } }`.
+Scelta: interfaccia nel dominio, PDO con prepared statement nell'infrastruttura. In produzione MySQL. Nei test, repository in memoria. Il brief vieta la memoria solo come storage vero.
 
-Il frontend non deve indovinare se il messaggio sta in `error`, `detail` o nel body grezzo. Al colloquio: un solo contratto per il fallimento, status HTTP per la classe dell’errore (400, 404, 422, 500) scelti e motivati, senza mescolarli.
+## DTO
 
-### PDO e query preparate
+Perché: la forma JSON non entra nell'entità, e l'entità non viene stampata così com'è.
 
-L’accesso a SQL passa da PDO con prepared statement. I valori utente non vengono concatenati nella query.
+Esempio: il validator produce `FlashcardInput`. La response esce da `FlashcardView` con `id`, `front`, `back`.
 
-È la difesa minima contro SQL injection, obbligatoria anche in un’app senza login. Al colloquio: si mostra il bind dei parametri e si dice che la validazione non sostituisce il prepared statement.
+Alternative: passare l'array del JSON fino al dominio; serializzare l'entità.
 
-### SQLite come storage
+Scelta: DTO in ingresso e in uscita. I campi JSON sconosciuti si ignorano, così un client che manda un campo in più non rompe la scrittura. Si leggono solo `front` e `back`.
 
-File SQLite sul disco. Persiste tra i riavvii, non richiede un server database, entra in Docker con un volume.
+## Validazione
 
-Trade-off: niente concorrenza di scrittura da molti client, niente utenti multipli seri. Per una collezione personale di flashcard è proporzionato. MySQL avrebbe senso con più processi di scrittura o con un ambiente già basato su quel motore; qui aggiungerebbe un servizio da operare senza cambiare il modello. Al colloquio: la scelta è di semplicità operativa, e la porta repository lascia MySQL come sostituzione successiva.
+Perché: il brief chiede di rifiutare i dati dell'utente con un messaggio utile.
 
-### Paginazione offset
+Esempio: front di soli spazi. Il validator risponde 422 con `fields.front`.
 
-`GET /flashcards?page=1&per_page=20` con `LIMIT` e `OFFSET`, più un totale per sapere quante pagine esistono.
+Alternative: ripetere la stessa regola nell'entità e con un `CHECK` SQL.
 
-La lista non cresce senza limite: il brief chiede “tutte le flashcard”, ma caricarle tutte insieme non regge se la collezione aumenta. Offset è semplice da spiegare; il cursore è migliore se si inserisce in testa mentre si pagina, e può restare in Future work. Al colloquio: offset va bene finché gli insert non spostano le pagine sotto i piedi dell’utente.
+Scelta: solo il validator. L'entità conserva le stringhe già controllate. Le query restano preparate: la validazione non basta contro l'SQL injection.
 
-### Filtri
+## Apache, entrypoint, Dockerfile
 
-Query opzionale su front o back, applicata nel repository con `LIKE` e parametro bound, non nel PHP dopo aver letto tutta la tabella.
+Perché: l'API gira in Docker insieme a MySQL, come chiede il brief se si usano i container.
 
-Al colloquio: il filtro sta nella query, così la paginazione conta solo le righe che matchano.
+Esempio: `GET /flashcards` non è un file su disco. `apache.conf` lo manda a `public/index.php`. All'avvio `entrypoint.sh` riprova la migrazione finché MySQL accetta connessioni, poi parte Apache.
 
-### CORS
+Alternative: server interno di PHP (`php -S`), senza `apache.conf`; migrazione lanciata a mano, senza entrypoint.
 
-Il frontend (altra origin in sviluppo) può chiamare l’API solo se il backend manda gli header CORS giusti, incluso `OPTIONS` per il preflight.
+Scelta: immagine `php:8.3-apache` pubblicata sulla porta 8080. Quei file non sono codice di dominio: Slim non li legge.
 
-Al colloquio: in Docker le due app hanno porte diverse, quindi CORS è un requisito reale, non un extra. In produzione stessa origin si può restringere l’allowlist.
+## Route
 
-### Delete idempotente
+Perché: il contratto HTTP è una tabella leggibile, registrata in un solo punto.
 
-`DELETE` su un id già rimosso può rispondere 204 sempre, oppure 404 la seconda volta. La scelta va fissata e testata.
+Esempio: `GET /flashcards`, `GET /flashcards/{id}`, `POST /flashcards`, `PUT /flashcards/{id}`, `DELETE /flashcards/{id}`.
 
-Al colloquio: 204 ripetuto è più semplice per il client che riprova; 404 è più preciso. Si dice quale si è scelto e perché, senza lasciare il comportamento al caso.
+Alternative: route sparse nei controller; `PATCH` per l'aggiornamento parziale.
+
+Scelta: le route del modulo stanno in `routes.php` e il bootstrap le registra. `PUT` richiede front e back. `PATCH` resta future work.
+
+## Status HTTP
+
+Perché: il client deve distinguere richiesta illeggibile, campo invalido e card assente.
+
+Esempio: `{"front":""}` è 422 con `fields.front`. Un id che non esiste è 404. Un body che non è JSON è 400.
+
+Alternative: 400 per tutti gli errori di input.
+
+Scelta: 400 se il JSON è illeggibile, 415 senza `application/json`, 422 campi, 404 assente, 500 generico se `APP_DEBUG` è false. `POST` risponde 201 con `Location`.
+
+## Envelope
+
+Perché: il frontend legge sempre gli stessi campi.
+
+Esempio: errore `{ "error": { "message", "fields" } }`. Lista e dettaglio `{ "data" }`.
+
+Alternative: messaggio a volte in `error`, a volte in `detail`, a volte nel body grezzo.
+
+Scelta: un solo formato di errore e un solo involucro `data` per le risposte riuscite. Lo scrive `JsonErrorHandler`.
+
+## File del bordo HTTP
+
+Perché: le scelte architetturali stanno nei confini del modulo, non nel numero di file.
+
+Esempio: `Shared/Http` ha CORS, controllo del JSON, `HttpProblem`, `ExceptionMapper` e `JsonErrorHandler`.
+
+Alternative: una classe per ogni dettaglio (`ErrorPayload`, `JsonResponder`, `MappedError`, un middleware per un solo header).
+
+Scelta: cinque file. Il mapper esiste perché `Shared` non deve importare le eccezioni di `Flashcard`.
+
+## MySQL
+
+Perché: serve persistenza vera, e un server SQL rende credibili vincoli e più istanze dell'API.
+
+Esempio: tabella `flashcards` con `id`, `front`, `back`. L'id è un UUID in `CHAR(36)` generato nel dominio. La lista ordina per `id`. Un UUID non segue l'ordine di creazione.
+
+Alternative: SQLite, un file solo, meno servizi da avviare; PostgreSQL, con il tipo `UUID` nativo.
+
+Scelta: MySQL 8 in Docker, volume persistente, `pdo_mysql`. Il dominio non nomina MySQL. SQLite sarebbe bastato per una collezione personale: si è accettato un servizio in più.
+
+## Migrazioni
+
+Perché: lo schema è versione nel git e si applica da solo all'avvio.
+
+Esempio: `001_create_flashcards.sql` parte una volta. Il nome del file finisce in `schema_migrations`.
+
+Alternative: creare la tabella a mano; un migrator di framework.
+
+Scelta: file SQL e `bin/migrate.php`, senza dipendere da Laravel.
+
+## Sicurezza senza login
+
+Perché: non c'è autenticazione, ma l'API è comunque esposta al browser.
+
+Esempio: il frontend su un'altra porta chiama l'API solo se la risposta ha l'origin di `CORS_ORIGIN`, anche sulla `OPTIONS`.
+
+Alternative: CORS aperto a `*`; nessun controllo sul body.
+
+Scelta: un solo origin, solo `application/json` su `POST` e `PUT`, prepared statement, 500 senza SQL, `expose_php` spento. Rate limit, login e HTTPS restano future work: in locale Docker parla HTTP.
+
+## Delete
+
+Perché: il client deve sapere se la card c'era.
+
+Esempio: la seconda `DELETE` sullo stesso id risponde 404, come la `GET`.
+
+Alternative: 204 anche se l'id è già assente, più comodo per un retry.
+
+Scelta: 404. Stesso significato di "risorsa assente", coperto dai test.
 
 ## Test
 
-### PHPUnit su validator e handler
+Perché: il brief chiede test sulla logica critica, non sul framework.
 
-I test coprono le parti critiche citate dal brief: validazione e handler, non il framework HTTP.
+Esempio: front vuoto, back solo spazi, stringa oltre 500, id assente in get/update/delete, create che salva i due campi.
 
-Casi minimi: front vuoto, back solo spazi, payload non JSON, id inesistente in update e delete, creazione che persiste i due campi. Al colloquio: si apre un test e si legge il comportamento atteso senza avviare il server.
+Alternative: test HTTP contro Slim; test di integrazione contro MySQL.
 
-### Repository finto
-
-Gli handler ricevono un’implementazione in memoria dell’interfaccia repository.
-
-Il test non tocca il file SQLite e non dipende dall’ordine dei test sul disco. Un test separato, più stretto, può coprire le query del repository SQLite se resta tempo. Al colloquio: l’interfaccia esiste perché i test ne avevano bisogno, non come ornamento.
+Scelta: PHPUnit su validator e use case, con il repository in memoria in `tests/Support`.
 
 ## Frontend
 
-### SPA con tre stati espliciti
+Non è in questo giro. Quando si fa: SPA React e TypeScript. Next.js no, è un framework full-stack vietato dal brief. `react-router` sì, se servono lista e form.
 
-La lista gestisce loading, errore e vuoto come stati diversi, oltre alla lista piena.
+Alternative per i dati: fetch sparso nei componenti. Scelta: un client tipizzato solo, così l'envelope di errore si legge in un file.
 
-Una collezione vuota non è un errore di rete. Al colloquio: l’utente capisce se riprovare o se creare la prima card.
+La lista ha tre stati distinti (caricamento, errore, vuoto). I form tengono il valore nello stato React. Un 422 del server compare sul campo: il backend resta l'autorità.
 
-### Form controllati
+## Fuori dal codice
 
-Aggiunta e modifica usano input il cui valore vive nello stato React. La stessa forma di validazione (campi obbligatori, lunghezza) vive vicino al form e non duplica in silenzio regole diverse dal backend.
+Futuro, senza implementazione a metà: filtro su front/back (e solo allora un indice di ricerca), `PATCH`, rate limit, concorrenza con `updated_at`, cancellazione logica, CQRS, secondo modulo.
 
-Il backend resta l’autorità: il frontend anticipa l’errore, non lo sostituisce. Al colloquio: un 400 dal server viene mostrato sui campi, non solo in console.
-
-### Client API tipizzato
-
-Un modulo unico fa `fetch`, controlla lo status e restituisce tipi TypeScript (`Flashcard`, errore con campi). I componenti non costruiscono URL a mano.
-
-Al colloquio: cambiare l’envelope di errore significa toccare un file, non ogni bottone.
-
-### UI separata dalle chiamate HTTP
-
-I componenti disegnano lista e form. Un hook o un modulo di data loading chiama il client.
-
-Si può ragionare sulla UI senza il server acceso, e sul contratto HTTP senza il markup. Al colloquio: react-router è ammesso se servono due viste (lista e form); Next.js no, perché il brief vieta i framework full-stack.
-
-## Performance e colloquio
-
-### Paginazione prima del resto
-
-La prima leva è non trasferire e non renderizzare l’intera collezione. `per_page` ha un massimo (per esempio 100) così un client non chiede `per_page=100000`.
-
-Al colloquio: è la ottimizzazione proporzionata a questo dominio. Il resto è secondario finché la lista è paginata.
-
-### Indice sulla ricerca
-
-Se il filtro è su front o back, un indice (o due) evita lo scan completo quando le righe aumentano.
-
-Su SQLite e poche centinaia di card l’effetto è invisibile. Va detto: l’indice si mette quando la query è un requisito, non per abitudine. Al colloquio: si motiva con il filtro, non con un benchmark inventato.
-
-### Niente over-fetch
-
-La lista chiede solo i campi che mostra. Il dettaglio, se esiste, è un’altra chiamata.
-
-Per due stringhe il guadagno è piccolo. Il punto da dire è il criterio: la response di lista non cresce con dati che la UI non usa.
-
-### Cosa non ottimizzare
-
-Cache HTTP, Redis, memoizzazione React, virtualizzazione della lista: su un CRUD di due campi costano più di quanto rendono, finché la paginazione c’è.
-
-Al colloquio: saper nominare la tecnica e spiegare perché non è nel codice vale più che averla messa. Se il tempo avanza, l’ordine sensato è cursore al posto dell’offset, poi indice, poi virtualizzazione solo se una pagina diventa lunga davvero.
+Cache HTTP, Redis, memoizzazione React, virtualizzazione: su due campi pesano più di quanto servano.
