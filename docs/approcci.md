@@ -184,11 +184,23 @@ Scelta: PHPUnit su validator e use case, con il repository in memoria in `tests/
 
 ## Frontend
 
-Non è in questo giro. Quando si fa: SPA React e TypeScript. Next.js no, è un framework full-stack vietato dal brief. `react-router` sì, se servono lista e form.
+Perché: il brief chiede una SPA React e TypeScript, senza Next.js, che consuma l'API.
 
-Alternative per i dati: fetch sparso nei componenti. Scelta: un client tipizzato solo, così l'envelope di errore si legge in un file.
+Esempio: `domains/flashcard` ha api, hook, componenti e pagine. `shared` ha il client HTTP e il `QueryClient`. `/` mostra una card alla volta e, al click, la gira. `/flashcards` è la tabella da cui si apre la modifica. `/flashcards/new` e `/flashcards/:id` usano lo stesso form.
 
-La lista ha tre stati distinti (caricamento, errore, vuoto). I form tengono il valore nello stato React. Un 422 del server compare sul campo: il backend resta l'autorità.
+Alternative: Redux o Zustand per lo stato del server; fetch sparso nei componenti; un'unica cartella `components`.
+
+Scelta: monolite modulare, come il backend. TanStack Query 5 tiene la cache e gli stati di caricamento, errore e salvataggio. Non c'è uno store globale. React Router 6 ha due pagine. Gli stili sono Tailwind 3. React 18 e Vite 5 girano su Node 18 e 20. Il client non è in Docker: `npm run dev` sulla porta 5173, quella già ammessa da CORS.
+
+## Tailwind
+
+Perché: le due pagine hanno poco stile, e deve installarsi uguale sul Mac di chi corregge.
+
+Esempio: la card usa classi di utilità, più tre valori arbitrari per il giro 3D (`perspective`, `rotateY`, `backface-visibility`).
+
+Alternative: CSS scritto a mano; CSS Modules; una libreria di componenti (MUI, Chakra); Tailwind 4.
+
+Scelta: Tailwind 3 con PostCSS. In `shared/ui` ci sono cinque primitive copiate da shadcn (Button, Card, Label, Textarea, Table): sono sorgente nel repo, non un kit installato. Tailwind 4 dipende da un binario nativo e si installa meno spesso allo stesso modo. MUI avrebbe deciso bottoni e form al posto nostro.
 
 ## Fuori dal codice
 
