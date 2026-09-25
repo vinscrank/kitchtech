@@ -1,16 +1,48 @@
 # KitchTech
 
-API to manage flashcards. Each card has a front and a back. The React client is not in this repository yet.
+API and React client to manage flashcards. Each card has a front and a back. The API runs in Docker. The client is in `frontend` and is not containerized.
 
 ## Setup
 
-From the repository root, start MySQL and the API. Composer runs inside the image during the build.
+Docker is required. Composer is not required on the host: it runs inside the image during the build.
+
+From the repository root:
 
 ```bash
 docker compose up --build
 ```
 
-The API listens on `http://localhost:18080`.
+MySQL is published on `localhost:33066`. The API listens on `http://localhost:18080`.
+
+| Method | Path |
+| --- | --- |
+| GET | `/flashcards` |
+| GET | `/flashcards/{id}` |
+| POST | `/flashcards` |
+| PUT | `/flashcards/{id}` |
+| DELETE | `/flashcards/{id}` |
+
+`POST` and `PUT` send `Content-Type: application/json` and a body with `front` and `back`. `POST` responds `201` with a `Location` header.
+
+Stop the stack with Ctrl+C, then:
+
+```bash
+docker compose down
+```
+
+`docker compose down -v` also removes the MySQL volume.
+
+## Frontend
+
+The client is a React and TypeScript app in `frontend`. It is not containerized. The API must already be running.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173`. The dev server calls `http://localhost:18080`. Set `VITE_API_URL` to point elsewhere.
 
 ## Architectural decisions
 
@@ -24,4 +56,4 @@ A fuller catalog of choices, alternatives, and future work is in [docs/approcci.
 
 ## Future work
 
-Search on front or back, `PATCH`, rate limiting, authentication, HTTPS, optimistic locking, and a second module. The React and TypeScript client is the next piece: a list with loading, error, and empty states, and forms to add, edit, and delete.
+Search on front or back, `PATCH`, rate limiting, authentication, HTTPS, optimistic locking, and a second module. The client already lists, flips, adds, edits, and deletes cards.
