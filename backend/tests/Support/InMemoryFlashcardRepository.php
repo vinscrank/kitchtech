@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use App\Flashcard\Domain\Entity\Flashcard;
-use App\Flashcard\Domain\Exception\FlashcardNotFound;
 use App\Flashcard\Domain\Repository\FlashcardRepository;
 use App\Flashcard\Domain\ValueObject\FlashcardId;
 
@@ -27,7 +26,7 @@ final class InMemoryFlashcardRepository implements FlashcardRepository
   {
     $key = $flashcard->id()->toString();
     if (! isset($this->items[$key])) {
-      throw new FlashcardNotFound();
+      return;
     }
 
     $this->items[$key] = $flashcard;

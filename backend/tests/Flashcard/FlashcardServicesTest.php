@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Flashcard;
 
-use App\Flashcard\Application\Service\CreateFlashcard;
-use App\Flashcard\Application\Service\DeleteFlashcard;
-use App\Flashcard\Application\Service\GetFlashcard;
-use App\Flashcard\Application\Service\UpdateFlashcard;
+use App\Flashcard\Application\UseCase\CreateFlashcard;
+use App\Flashcard\Application\UseCase\DeleteFlashcard;
+use App\Flashcard\Application\UseCase\GetFlashcard;
+use App\Flashcard\Application\UseCase\UpdateFlashcard;
 use App\Flashcard\Application\Validation\FlashcardInputValidator;
-use App\Flashcard\Domain\Exception\FlashcardNotFound;
+use App\Flashcard\Domain\Entity\Flashcard;
+use App\Flashcard\Application\Exception\FlashcardNotFound;
+use App\Flashcard\Domain\Exception\InvalidFlashcard;
+use App\Flashcard\Domain\Exception\InvalidFlashcardId;
 use App\Flashcard\Domain\ValueObject\FlashcardId;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\InMemoryFlashcardRepository;
@@ -48,5 +51,17 @@ final class FlashcardServicesTest extends TestCase
   {
     $this->expectException(FlashcardNotFound::class);
     (new DeleteFlashcard(new InMemoryFlashcardRepository()))->handle(self::MISSING_ID);
+  }
+
+  public function testFromStringRejectsNonUuidV4(): void
+  {
+    $this->expectException(InvalidFlashcardId::class);
+    FlashcardId::fromString('00000000-0000-1000-8000-000000000001');
+  }
+
+  public function testCreateRejectsEmptyText(): void
+  {
+    $this->expectException(InvalidFlashcard::class);
+    Flashcard::create('', 'word');
   }
 }

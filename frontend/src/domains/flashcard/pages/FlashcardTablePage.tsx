@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Page } from '../../../app/Page'
 import { AsyncStatus } from '../../../shared/ui/async-status'
-import { Button } from '../../../shared/ui/button'
+import { Button, buttonClass } from '../../../shared/ui/button'
 import { Loader } from '../../../shared/ui/loader'
 import { Card } from '../../../shared/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../shared/ui/table'
@@ -17,9 +17,9 @@ export function FlashcardTablePage() {
     <Page
       title="Manage"
       action={
-        <Button asChild>
-          <Link to="/flashcards/new">Add</Link>
-        </Button>
+        <Link to="/flashcards/new" className={buttonClass()}>
+          Add
+        </Link>
       }
     >
       <AsyncStatus pending={cards.isPending} error={cards.error ?? remove.error} />
@@ -40,9 +40,9 @@ export function FlashcardTablePage() {
                   <TableCell className="truncate font-medium" title={card.front}>{card.front}</TableCell>
                   <TableCell className="truncate text-muted-foreground" title={card.back}>{card.back}</TableCell>
                   <TableCell className="whitespace-nowrap text-right">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link to={`/flashcards/${card.id}`}>Edit</Link>
-                    </Button>
+                    <Link to={`/flashcards/${card.id}`} className={buttonClass('outline', 'sm')}>
+                      Edit
+                    </Link>
                     <Button
                       className="ml-1 text-muted-foreground hover:text-destructive"
                       variant="outline"

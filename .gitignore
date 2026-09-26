@@ -1,3 +1,5 @@
 /backend/vendor/
 /backend/.phpunit.cache/
 /backend/.env
+/docs/approcci.md
+/docs/brief.md

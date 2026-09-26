@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Flashcard\Application\Service;
+namespace App\Flashcard\Application\UseCase;
 
 use App\Flashcard\Application\Dto\FlashcardView;
-use App\Flashcard\Domain\Exception\FlashcardNotFound;
+use App\Flashcard\Application\Exception\FlashcardNotFound;
 use App\Flashcard\Domain\Repository\FlashcardRepository;
 use App\Flashcard\Domain\ValueObject\FlashcardId;
 

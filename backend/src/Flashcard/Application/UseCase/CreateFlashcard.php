@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Flashcard\Application\Service;
+namespace App\Flashcard\Application\UseCase;
 
 use App\Flashcard\Application\Dto\FlashcardView;
 use App\Flashcard\Application\Validation\FlashcardInputValidator;

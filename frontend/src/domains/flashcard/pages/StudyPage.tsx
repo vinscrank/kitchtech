@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Page } from '../../../app/Page'
 import { AsyncStatus } from '../../../shared/ui/async-status'
-import { Button } from '../../../shared/ui/button'
+import { Button, buttonClass } from '../../../shared/ui/button'
 import { FlipCard } from '../components/FlipCard'
 import { useFlashcards } from '../hooks/useFlashcards'
 
@@ -17,9 +17,9 @@ export function StudyPage() {
     <Page
       title="Flashcards"
       action={
-        <Button asChild>
-          <Link to="/flashcards/new">Add</Link>
-        </Button>
+        <Link to="/flashcards/new" className={buttonClass()}>
+          Add
+        </Link>
       }
     >
       <AsyncStatus pending={cards.isPending} error={cards.error} />

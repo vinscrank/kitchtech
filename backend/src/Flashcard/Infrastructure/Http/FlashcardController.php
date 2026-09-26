@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Flashcard\Infrastructure\Http;
 
-use App\Flashcard\Application\Service\CreateFlashcard;
-use App\Flashcard\Application\Service\DeleteFlashcard;
-use App\Flashcard\Application\Service\GetFlashcard;
-use App\Flashcard\Application\Service\ListFlashcards;
-use App\Flashcard\Application\Service\UpdateFlashcard;
+use App\Flashcard\Application\UseCase\CreateFlashcard;
+use App\Flashcard\Application\UseCase\DeleteFlashcard;
+use App\Flashcard\Application\UseCase\GetFlashcard;
+use App\Flashcard\Application\UseCase\ListFlashcards;
+use App\Flashcard\Application\UseCase\UpdateFlashcard;
 use App\Shared\Http\HttpProblem;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -24,19 +24,19 @@ final class FlashcardController
   ) {
   }
 
-  public function index(ResponseInterface $response): ResponseInterface
+  public function index(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
   {
     return $this->json($response, $this->listFlashcards->handle());
   }
 
-  public function show(ServerRequestInterface $request, ResponseInterface $response, string $id): ResponseInterface
+  public function show(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
   {
-    $view = $this->getFlashcard->handle($id);
+    $view = $this->getFlashcard->handle($args['id']);
 
     return $this->json($response, ['data' => $view->toArray()]);
   }
 
-  public function create(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+  public function create(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
   {
     $view = $this->createFlashcard->handle($this->payload($request));
 
@@ -44,16 +44,16 @@ final class FlashcardController
       ->withHeader('Location', '/flashcards/'.$view->id);
   }
 
-  public function update(ServerRequestInterface $request, ResponseInterface $response, string $id): ResponseInterface
+  public function update(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
   {
-    $view = $this->updateFlashcard->handle($id, $this->payload($request));
+    $view = $this->updateFlashcard->handle($args['id'], $this->payload($request));
 
     return $this->json($response, ['data' => $view->toArray()]);
   }
 
-  public function delete(ServerRequestInterface $request, ResponseInterface $response, string $id): ResponseInterface
+  public function delete(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
   {
-    $this->deleteFlashcard->handle($id);
+    $this->deleteFlashcard->handle($args['id']);
 
     return $response->withStatus(204);
   }

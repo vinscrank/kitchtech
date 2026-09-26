@@ -1,7 +1,7 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Page } from '../../../app/Page'
 import { AsyncStatus } from '../../../shared/ui/async-status'
-import { Button } from '../../../shared/ui/button'
+import { buttonClass } from '../../../shared/ui/button'
 import { FlashcardForm } from '../components/FlashcardForm'
 import { useCreateFlashcard, useFlashcard, useUpdateFlashcard } from '../hooks/useFlashcards'
 
@@ -17,9 +17,9 @@ export function FlashcardFormPage() {
     <Page
       title={id ? 'Edit card' : 'New card'}
       action={
-        <Button variant="outline" asChild>
-          <Link to="/flashcards">Back</Link>
-        </Button>
+        <Link to="/flashcards" className={buttonClass('outline')}>
+          Back
+        </Link>
       }
     >
       <AsyncStatus pending={Boolean(id) && existing.isPending} error={id ? existing.error : null} />

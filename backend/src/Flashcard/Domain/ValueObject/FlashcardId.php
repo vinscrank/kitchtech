@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Flashcard\Domain\ValueObject;
 
-use App\Flashcard\Domain\Exception\FlashcardNotFound;
+use App\Flashcard\Domain\Exception\InvalidFlashcardId;
 
 final class FlashcardId
 {
@@ -31,8 +31,8 @@ final class FlashcardId
 
   public static function fromString(string $value): self
   {
-    if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $value) !== 1) {
-      throw new FlashcardNotFound();
+    if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $value) !== 1) {
+      throw new InvalidFlashcardId();
     }
 
     return new self(strtolower($value));
