@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Page } from '../../../app/Page'
 import { AsyncStatus } from '../../../shared/ui/async-status'
-import { Button, buttonClass } from '../../../shared/ui/button'
 import { FlipCard } from '../components/FlipCard'
 import { useFlashcards } from '../hooks/useFlashcards'
 
@@ -17,7 +16,10 @@ export function StudyPage() {
     <Page
       title="Flashcards"
       action={
-        <Link to="/flashcards/new" className={buttonClass()}>
+        <Link
+          to="/flashcards/new"
+          className="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        >
           Add
         </Link>
       }
@@ -32,12 +34,20 @@ export function StudyPage() {
           <FlipCard key={card.id} card={card} />
           {list.length > 1 ? (
             <div className="flex gap-2">
-              <Button variant="outline" disabled={current === 0} onClick={() => setIndex(current - 1)}>
+              <button
+                className="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                disabled={current === 0}
+                onClick={() => setIndex(current - 1)}
+              >
                 Previous
-              </Button>
-              <Button variant="outline" disabled={current === list.length - 1} onClick={() => setIndex(current + 1)}>
+              </button>
+              <button
+                className="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                disabled={current === list.length - 1}
+                onClick={() => setIndex(current + 1)}
+              >
                 Next
-              </Button>
+              </button>
             </div>
           ) : null}
         </div>

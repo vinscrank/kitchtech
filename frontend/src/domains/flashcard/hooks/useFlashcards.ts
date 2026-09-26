@@ -1,7 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { flashcardApi } from '../api/flashcardApi'
-import { flashcardKeys, type FlashcardInput } from '../model/flashcard'
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
+import { flashcardApi } from "../api/flashcardApi"
+import { flashcardKeys, type FlashcardInput } from "../model/flashcard"
 
 export function useFlashcards() {
   return useQuery({
@@ -12,8 +12,8 @@ export function useFlashcards() {
 
 export function useFlashcard(id: string | undefined) {
   return useQuery({
-    queryKey: flashcardKeys.detail(id ?? ''),
-    queryFn: () => flashcardApi.get(id ?? ''),
+    queryKey: flashcardKeys.detail(id ?? ""),
+    queryFn: () => flashcardApi.get(id ?? ""),
     enabled: Boolean(id),
   })
 }
@@ -25,7 +25,7 @@ export function useCreateFlashcard() {
     mutationFn: (input: FlashcardInput) => flashcardApi.create(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: flashcardKeys.all })
-      toast.success('Saved')
+      toast.success("Saved")
     },
   })
 }
@@ -38,7 +38,7 @@ export function useUpdateFlashcard(id: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: flashcardKeys.all })
       queryClient.invalidateQueries({ queryKey: flashcardKeys.detail(id) })
-      toast.success('Saved')
+      toast.success("Saved")
     },
   })
 }
@@ -50,7 +50,7 @@ export function useDeleteFlashcard() {
     mutationFn: flashcardApi.remove,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: flashcardKeys.all })
-      toast.success('Deleted')
+      toast.success("Deleted")
     },
   })
 }

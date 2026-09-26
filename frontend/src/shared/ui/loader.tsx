@@ -1,5 +1,9 @@
-import { cn } from './cn'
-
-export function Loader({ className }: { className?: string }) {
-  return <span role="status" aria-label="Loading" className={cn('inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent', className)} />
+export function Loader({ className = 'size-4' }: { className?: string }) {
+  return (
+    <span
+      role="status"
+      aria-label="Loading"
+      className={`inline-block animate-spin rounded-full border-2 border-current border-t-transparent ${className}`}
+    />
+  )
 }

@@ -116,9 +116,7 @@ src/
 
 Flashcard-specific code stays inside the feature. A new feature can be added as a new folder instead of spreading its files across global `components` and `api` directories.
 
-Generic API, query, and UI code lives in `shared`.
-
-`shared/ui` contains a few small components copied from shadcn, such as `Button`, `Card`, `Label`, `Textarea`, and `Table`. The components are kept locally, providing reusable UI primitives without introducing a full UI framework dependency.
+Generic API and query code lives in `shared`. The screens are styled with Tailwind classes.
 
 TanStack Query manages server state, loading, errors, caching, and cache invalidation after mutations.
 
@@ -128,7 +126,7 @@ Sonner is used for mutation feedback so success messages remain visible after na
 
 - Backend: PHP 8.3, Slim 4, PDO, PHPUnit
 - Database: MySQL 8
-- Frontend: React 18, TypeScript, Vite, React Router, TanStack Query, Sonner, Tailwind CSS, local shadcn components
+- Frontend: React 18, TypeScript, Vite, React Router, TanStack Query, Sonner, Tailwind CSS
 
 ## Trade-offs
 

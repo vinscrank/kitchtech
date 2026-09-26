@@ -9,7 +9,6 @@ use App\Flashcard\Application\UseCase\DeleteFlashcard;
 use App\Flashcard\Application\UseCase\GetFlashcard;
 use App\Flashcard\Application\UseCase\ListFlashcards;
 use App\Flashcard\Application\UseCase\UpdateFlashcard;
-use App\Shared\Http\HttpProblem;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -38,7 +37,7 @@ final class FlashcardController
 
   public function create(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
   {
-    $view = $this->createFlashcard->handle($this->payload($request));
+    $view = $this->createFlashcard->handle($request->getParsedBody());
 
     return $this->json($response, ['data' => $view->toArray()], 201)
       ->withHeader('Location', '/flashcards/'.$view->id);
@@ -46,7 +45,7 @@ final class FlashcardController
 
   public function update(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
   {
-    $view = $this->updateFlashcard->handle($args['id'], $this->payload($request));
+    $view = $this->updateFlashcard->handle($args['id'], $request->getParsedBody());
 
     return $this->json($response, ['data' => $view->toArray()]);
   }
@@ -56,17 +55,6 @@ final class FlashcardController
     $this->deleteFlashcard->handle($args['id']);
 
     return $response->withStatus(204);
-  }
-
-  private function payload(ServerRequestInterface $request): array
-  {
-    $parsed = $request->getParsedBody();
-
-    if (! is_array($parsed)) {
-      throw new HttpProblem(400, 'Malformed JSON');
-    }
-
-    return $parsed;
   }
 
   private function json(ResponseInterface $response, array $data, int $status = 200): ResponseInterface

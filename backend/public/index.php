@@ -25,11 +25,12 @@ $responses = new ResponseFactory();
 
 
 $repository = new MysqlFlashcardRepository((new PdoFactory())->create($settings['db']));
+$validator = new FlashcardInputValidator();
 $controller = new FlashcardController(
   new ListFlashcards($repository),
   new GetFlashcard($repository),
-  new CreateFlashcard($repository, new FlashcardInputValidator()),
-  new UpdateFlashcard($repository, new FlashcardInputValidator()),
+  new CreateFlashcard($repository, $validator),
+  new UpdateFlashcard($repository, $validator),
   new DeleteFlashcard($repository),
 );
 
@@ -42,7 +43,7 @@ $errorMiddleware->setDefaultErrorHandler(new JsonErrorHandler(
   $settings['debug'],
   [new FlashcardExceptionMapper()],
 ));
-$app->add(new CorsMiddleware($settings['corsOrigin'], $responses));
+$app->add(new CorsMiddleware($settings['corsOrigins'], $responses));
 
 (require dirname(__DIR__).'/src/Flashcard/Infrastructure/Http/routes.php')($app, $controller);
 
