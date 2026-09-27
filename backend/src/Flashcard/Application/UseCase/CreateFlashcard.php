@@ -22,7 +22,6 @@ final class CreateFlashcard
     $input = $this->validator->validate($payload);
     $flashcard = Flashcard::create($input->front, $input->back);
     $this->repository->add($flashcard);
-
     return FlashcardView::from($flashcard);
   }
 }

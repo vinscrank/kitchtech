@@ -37,7 +37,6 @@ final class FlashcardInputValidator
       Flashcard::guard($trimmed);
     } catch (InvalidFlashcard $exception) {
       $errors[$field] = $exception->getMessage();
-
       return '';
     }
 
