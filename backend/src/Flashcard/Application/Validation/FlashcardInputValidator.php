@@ -12,21 +12,21 @@ final class FlashcardInputValidator
 {
   public function validate(array $payload): FlashcardInput
   {
-    $fields = [];
-    $front = $this->text($payload['front'] ?? null, 'front', $fields);
-    $back = $this->text($payload['back'] ?? null, 'back', $fields);
+    $errors = [];
+    $front = $this->text($payload['front'] ?? null, 'front', $errors);
+    $back = $this->text($payload['back'] ?? null, 'back', $errors);
 
-    if ($fields !== []) {
-      throw new ValidationFailed($fields);
+    if ($errors !== []) {
+      throw new ValidationFailed($errors);
     }
 
     return new FlashcardInput($front, $back);
   }
 
-  private function text(mixed $value, string $field, array &$fields): string
+  private function text(mixed $value, string $field, array &$errors): string
   {
     if (! is_string($value)) {
-      $fields[$field] = 'Must be a string';
+      $errors[$field] = 'Must be a string';
 
       return '';
     }
@@ -36,7 +36,7 @@ final class FlashcardInputValidator
     try {
       Flashcard::guard($trimmed);
     } catch (InvalidFlashcard $exception) {
-      $fields[$field] = $exception->getMessage();
+      $errors[$field] = $exception->getMessage();
 
       return '';
     }
