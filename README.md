@@ -2,9 +2,9 @@
 
 A small full-stack flashcard application built with PHP, React, and TypeScript.
 
-The focus of this assessment was to keep the solution simple, testable, and easy to extend without introducing unnecessary framework coupling.
+The goal was to keep the solution simple, clear, and easy to extend without adding unnecessary complexity.
 
-## Setup
+## Setup Instructions
 
 ### Backend
 
@@ -41,9 +41,9 @@ Open:
 http://localhost:5173
 ```
 
-Set `VITE_API_URL` if the API is running at a different address.
+If the API runs at a different address, set `VITE_API_URL`.
 
-## API
+## API Endpoints
 
 | Method | Path |
 |---|---|
@@ -53,51 +53,37 @@ Set `VITE_API_URL` if the API is running at a different address.
 | PUT | `/flashcards/{id}` |
 | DELETE | `/flashcards/{id}` |
 
-## Architecture
+## Architectural Decisions
 
 ### Backend
 
-The backend follows a lightweight Clean Architecture approach.
+The backend uses a lightweight Clean Architecture.
 
 ```text
-HTTP / Slim
-    ↓
+HTTP
+ ↓
 Application
-    ↓
+ ↓
 Domain
 
-Infrastructure ──implements──> Domain contracts
+Infrastructure implements Domain contracts
 ```
 
-- **Domain** contains the core model, business rules, `FlashcardId`, and the `FlashcardRepository` contract.
-- **Application** contains the use cases and coordinates validation, domain objects, and persistence.
-- **Infrastructure** contains Slim controllers/routes and the MySQL repository implementation.
+- **Domain** contains the Flashcard model, its rules, and the repository contract.
+- **Application** contains the use cases: list, get, create, update, and delete.
+- **Infrastructure** contains the HTTP layer and the MySQL repository.
 
 The Domain does not depend on Slim, PDO, or MySQL.
 
-Slim 4 is used only for the HTTP layer. It was chosen instead of plain PHP to avoid reimplementing routing, middleware, and HTTP handling, while remaining much lighter than a full framework such as Laravel.
+Slim 4 is used only for HTTP concerns such as routing and request/response handling. It avoids writing this infrastructure by hand while staying lighter than a full framework.
 
-Dependencies are wired manually in `public/index.php`, which acts as the composition root.
+Dependencies are wired manually in `public/index.php`. The dependency graph is small, so a DI container would add more complexity than value.
 
-`php-di/slim-bridge` is intentionally not used. The dependency graph is small, so dependencies are wired explicitly in one place and remain easy to inspect.
-
-For example, use cases depend on:
-
-```text
-FlashcardRepository
-```
-
-rather than directly on:
-
-```text
-MysqlFlashcardRepository
-```
-
-This allows the persistence implementation to be replaced without changing the use case. Tests can use an in-memory repository instead of MySQL.
+Use cases depend on the `FlashcardRepository` contract instead of the MySQL implementation. This keeps persistence replaceable and makes the use cases easier to test.
 
 ### Frontend
 
-The frontend is organized by feature:
+The frontend is organized by feature.
 
 ```text
 src/
@@ -114,39 +100,42 @@ src/
     └── ui/
 ```
 
-Flashcard-specific code stays inside the feature. A new feature can be added as a new folder instead of spreading its files across global `components` and `api` directories.
+Flashcard-specific code stays together, while reusable API, query, and UI code lives in `shared`.
 
-Generic API and query code lives in `shared`. The screens are styled with Tailwind classes.
+TanStack Query is used for loading, caching, errors, and refreshing data after create, update, and delete operations.
 
-TanStack Query manages server state, loading, errors, caching, and cache invalidation after mutations.
+Tailwind CSS is used for styling, and Sonner is used for user feedback after mutations.
 
-Sonner is used for mutation feedback so success messages remain visible after navigating back to the list.
-
-## Technology
+### Technology and Storage
 
 - Backend: PHP 8.3, Slim 4, PDO, PHPUnit
 - Database: MySQL 8
 - Frontend: React 18, TypeScript, Vite, React Router, TanStack Query, Sonner, Tailwind CSS
 
-## Trade-offs
+MySQL was chosen as persistent storage. SQLite would also have been enough for this task, but MySQL better represents an external database service.
 
-- **Slim over plain PHP:** reduces HTTP boilerplate while keeping the core application independent from a heavy framework.
-- **Manual dependency wiring:** more explicit and easier to follow for a small dependency graph; a DI container would become more useful as the application grows.
-- **MySQL over SQLite:** adds setup complexity and an extra container, but better represents an external persistence service.
-- **Clean Architecture:** introduces more files and abstractions for a small CRUD application, but keeps domain rules, use cases, HTTP, and persistence independently testable and replaceable. Use cases depend only on the `FlashcardRepository` interface, so they do not know whether persistence is MySQL or in-memory. The controller knowingly depends on the concrete use case classes. Hexagonal inbound ports would remove that link if the controller later needed to stay independent of those classes.
-- **TanStack Query:** adds a frontend dependency, but centralizes server-state management, caching, loading, errors, and mutation invalidation.
-- **Feature-based frontend structure:** adds some nesting initially, but keeps each feature colocated and makes future domains easier to add.
+### Trade-offs
+
+- **Slim instead of plain PHP:** less HTTP boilerplate, while keeping the core independent from the framework.
+- **Manual dependency wiring:** simple and explicit for a small project; a DI container would make more sense in a larger application.
+- **Clean Architecture:** adds some files and structure, but keeps business rules, use cases, HTTP, and persistence separated.
+- **MySQL instead of SQLite:** adds setup complexity, but gives a more realistic external persistence layer.
+- **TanStack Query:** adds one dependency, but avoids repeating server-state logic in the pages.
+- **Feature-based frontend structure:** adds some nesting, but keeps each feature self-contained.
 
 ## Validation and Error Handling
 
-- `FlashcardInputValidator` validates the request shape and normalizes input, while `Flashcard` enforces domain invariants such as non-empty text and the 500-character limit.
-- Invalid flashcard data is mapped to a `422 Unprocessable Entity` response with field-level errors.
-- `FlashcardId::fromString` accepts only UUID v4 values. Invalid IDs return `400 Bad Request`.
-- A valid ID with no matching row returns `null` from the repository, which is converted into `FlashcardNotFound` and returned as `404 Not Found`.
+Input is validated before it reaches the Domain, while the Flashcard entity still protects its own rules.
+
+The API returns:
+
+- `400 Bad Request` for invalid IDs
+- `404 Not Found` when a flashcard does not exist
+- `422 Unprocessable Entity` for invalid flashcard data
 
 ## Testing
 
-Backend tests cover critical domain and application behavior.
+Backend tests cover critical Domain and Application behavior.
 
 Use cases can be tested with an in-memory repository, so most tests do not require MySQL.
 
@@ -154,9 +143,9 @@ Use cases can be tested with an in-memory repository, so most tests do not requi
 
 With more time, I would add:
 
-- pagination to `GET /flashcards`, which currently returns every row
-- a `created_at` column, because the list is currently ordered by UUID rather than creation time
-- search across front and back, with an appropriate database index once that query exists
+- pagination
+- a `created_at` field and proper sorting
+- search on front and back
 - authentication and card ownership
 - API integration tests
 - end-to-end frontend tests
