@@ -133,7 +133,7 @@ Sonner is used for mutation feedback so success messages remain visible after na
 - **Slim over plain PHP:** reduces HTTP boilerplate while keeping the core application independent from a heavy framework.
 - **Manual dependency wiring:** more explicit and easier to follow for a small dependency graph; a DI container would become more useful as the application grows.
 - **MySQL over SQLite:** adds setup complexity and an extra container, but better represents an external persistence service.
-- **Clean Architecture:** introduces more files and abstractions for a small CRUD application, but keeps domain rules, use cases, HTTP, and persistence independently testable and replaceable.
+- **Clean Architecture:** introduces more files and abstractions for a small CRUD application, but keeps domain rules, use cases, HTTP, and persistence independently testable and replaceable. Use cases depend only on the `FlashcardRepository` interface, so they do not know whether persistence is MySQL or in-memory. The controller knowingly depends on the concrete use case classes. Hexagonal inbound ports would remove that link if the controller later needed to stay independent of those classes.
 - **TanStack Query:** adds a frontend dependency, but centralizes server-state management, caching, loading, errors, and mutation invalidation.
 - **Feature-based frontend structure:** adds some nesting initially, but keeps each feature colocated and makes future domains easier to add.
 
