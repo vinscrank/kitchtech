@@ -17,7 +17,7 @@ final class CreateFlashcard
   ) {
   }
 
-  public function handle(array $payload): FlashcardView
+  public function execute(array $payload): FlashcardView
   {
     $input = $this->validator->validate($payload);
     $flashcard = Flashcard::create($input->front, $input->back);

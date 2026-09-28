@@ -25,19 +25,19 @@ final class FlashcardController
 
   public function index(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
   {
-    return $this->json($response, $this->listFlashcards->handle());
+    return $this->json($response, $this->listFlashcards->execute());
   }
 
   public function show(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
   {
-    $view = $this->getFlashcard->handle($args['id']);
+    $view = $this->getFlashcard->execute($args['id']);
 
     return $this->json($response, ['data' => $view->toArray()]);
   }
 
   public function create(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
   {
-    $view = $this->createFlashcard->handle($request->getParsedBody());
+    $view = $this->createFlashcard->execute($request->getParsedBody());
 
     return $this->json($response, ['data' => $view->toArray()], 201)
       ->withHeader('Location', '/flashcards/'.$view->id);
@@ -45,14 +45,14 @@ final class FlashcardController
 
   public function update(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
   {
-    $view = $this->updateFlashcard->handle($args['id'], $request->getParsedBody());
+    $view = $this->updateFlashcard->execute($args['id'], $request->getParsedBody());
 
     return $this->json($response, ['data' => $view->toArray()]);
   }
 
   public function delete(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
   {
-    $this->deleteFlashcard->handle($args['id']);
+    $this->deleteFlashcard->execute($args['id']);
 
     return $response->withStatus(204);
   }

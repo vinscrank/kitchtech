@@ -25,7 +25,7 @@ final class FlashcardServicesTest extends TestCase
   {
     $repository = new InMemoryFlashcardRepository();
     $view = (new CreateFlashcard($repository, new FlashcardInputValidator()))
-      ->handle(['front' => 'hint', 'back' => 'word']);
+      ->execute(['front' => 'hint', 'back' => 'word']);
 
     $stored = $repository->findById(FlashcardId::fromString($view->id));
 
@@ -37,20 +37,20 @@ final class FlashcardServicesTest extends TestCase
   public function testGetMissingId(): void
   {
     $this->expectException(FlashcardNotFound::class);
-    (new GetFlashcard(new InMemoryFlashcardRepository()))->handle(self::MISSING_ID);
+    (new GetFlashcard(new InMemoryFlashcardRepository()))->execute(self::MISSING_ID);
   }
 
   public function testUpdateMissingId(): void
   {
     $this->expectException(FlashcardNotFound::class);
     (new UpdateFlashcard(new InMemoryFlashcardRepository(), new FlashcardInputValidator()))
-      ->handle(self::MISSING_ID, ['front' => 'hint', 'back' => 'word']);
+      ->execute(self::MISSING_ID, ['front' => 'hint', 'back' => 'word']);
   }
 
   public function testDeleteMissingId(): void
   {
     $this->expectException(FlashcardNotFound::class);
-    (new DeleteFlashcard(new InMemoryFlashcardRepository()))->handle(self::MISSING_ID);
+    (new DeleteFlashcard(new InMemoryFlashcardRepository()))->execute(self::MISSING_ID);
   }
 
   public function testFromStringRejectsNonUuidV4(): void

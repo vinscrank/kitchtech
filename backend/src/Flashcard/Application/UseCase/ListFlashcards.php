@@ -13,7 +13,7 @@ final class ListFlashcards
   {
   }
 
-  public function handle(): array
+  public function execute(): array
   {
     $data = [];
 

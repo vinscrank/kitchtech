@@ -15,7 +15,7 @@ final class GetFlashcard
   {
   }
 
-  public function handle(string $id): FlashcardView
+  public function execute(string $id): FlashcardView
   {
     $flashcard = $this->repository->findById(FlashcardId::fromString($id));
 

@@ -14,7 +14,7 @@ final class DeleteFlashcard
   {
   }
 
-  public function handle(string $id): void
+  public function execute(string $id): void
   {
     $flashcardId = FlashcardId::fromString($id);
 
